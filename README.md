@@ -1,4 +1,4 @@
-# Flic Hands
+# Hands Up
 
 A lightweight web app that turns physical Flic buttons into a "raise hand" queue for in-person meetings.
 
@@ -6,7 +6,7 @@ A lightweight web app that turns physical Flic buttons into a "raise hand" queue
 
 ```bash
 git clone <repo>
-cd flic-hands
+cd hands-up
 npm install
 cp .env.example .env
 # Edit .env if needed
@@ -44,7 +44,7 @@ For each button (1–10), configure in the Flic app:
 ### With PM2
 
 ```bash
-pm2 start server.js --name flic-hands
+pm2 start server.js --name hands-up
 ```
 
 ### Nginx Configuration

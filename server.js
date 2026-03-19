@@ -301,5 +301,5 @@ app.get('/api/active/state', (req, res) => {
 
 // --- Start Server ---
 app.listen(PORT, () => {
-  console.log(`Flic Hands running on http://localhost:${PORT}`);
+  console.log(`Hands Up running on http://localhost:${PORT}`);
 });
