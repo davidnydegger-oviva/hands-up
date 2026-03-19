@@ -9,6 +9,7 @@ const db = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const BUTTON_API_KEY = process.env.BUTTON_API_KEY;
 
 app.use(cors());
 app.use(express.json());
@@ -100,8 +101,18 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+// --- Button Auth Middleware ---
+function requireButtonKey(req, res, next) {
+  if (!BUTTON_API_KEY) return next(); // no key configured = open (backward compat)
+  const key = req.query.key || req.headers['x-api-key'];
+  if (key !== BUTTON_API_KEY) {
+    return res.json({ ok: true }); // still 200 so Flic doesn't error
+  }
+  next();
+}
+
 // --- Button Endpoints (Flic hub) ---
-app.post('/api/button/:buttonNumber/raise', (req, res) => {
+app.post('/api/button/:buttonNumber/raise', requireButtonKey, (req, res) => {
   try {
     const buttonNumber = parseInt(req.params.buttonNumber, 10);
     const meeting = getActiveMeeting();
@@ -130,7 +141,7 @@ app.post('/api/button/:buttonNumber/raise', (req, res) => {
   }
 });
 
-app.post('/api/button/:buttonNumber/lower', (req, res) => {
+app.post('/api/button/:buttonNumber/lower', requireButtonKey, (req, res) => {
   try {
     const buttonNumber = parseInt(req.params.buttonNumber, 10);
     const meeting = getActiveMeeting();
@@ -150,7 +161,7 @@ app.post('/api/button/:buttonNumber/lower', (req, res) => {
 });
 
 // --- Facilitator Endpoints ---
-app.post('/api/meetings/:meetingId/next', (req, res) => {
+app.post('/api/meetings/:meetingId/next', requireAdmin, (req, res) => {
   const { meetingId } = req.params;
   const top = db.prepare(
     'SELECT * FROM hand_raises WHERE meeting_id = ? AND is_raised = 1 ORDER BY raised_at ASC LIMIT 1'
@@ -165,7 +176,7 @@ app.post('/api/meetings/:meetingId/next', (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/meetings/:meetingId/clear', (req, res) => {
+app.post('/api/meetings/:meetingId/clear', requireAdmin, (req, res) => {
   const { meetingId } = req.params;
   db.prepare('UPDATE hand_raises SET is_raised = 0 WHERE meeting_id = ? AND is_raised = 1').run(meetingId);
   broadcastState(meetingId);
