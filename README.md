@@ -21,7 +21,7 @@ Open `http://localhost:3000` in your browser.
 |---|---|---|
 | `PORT` | `3000` | Server port |
 | `ADMIN_PASSWORD` | *(none — must be set)* | Password for admin panel |
-| `BUTTON_API_KEY` | *(none — open if unset)* | API key for button endpoints (via `?key=` param) |
+| `BUTTON_API_KEY` | *(none — open if unset)* | API key for button endpoints (via `Authorization: Bearer` header) |
 | `DB_PATH` | `./data/hands.db` | SQLite database path |
 
 ## Pages

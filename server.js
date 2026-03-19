@@ -104,8 +104,9 @@ function requireAdmin(req, res, next) {
 // --- Button Auth Middleware ---
 function requireButtonKey(req, res, next) {
   if (!BUTTON_API_KEY) return next(); // no key configured = open (backward compat)
-  const key = req.query.key || req.headers['x-api-key'];
-  if (key !== BUTTON_API_KEY) {
+  const auth = req.headers['authorization'] || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  if (token !== BUTTON_API_KEY) {
     return res.json({ ok: true }); // still 200 so Flic doesn't error
   }
   next();
