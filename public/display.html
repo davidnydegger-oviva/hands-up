@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flic Hands — Display</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      background: #111;
+      border-bottom: 1px solid #222;
+      flex-shrink: 0;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .meeting-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #aaa;
+    }
+    .badge {
+      background: #00A89D;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.2rem 0.65rem;
+      border-radius: 20px;
+      min-width: 1.5rem;
+      text-align: center;
+    }
+    .badge.zero { background: #333; color: #666; }
+
+    .sound-toggle {
+      background: none;
+      border: none;
+      color: #555;
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0.3rem;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+    .sound-toggle:hover { color: #888; }
+    .sound-toggle.enabled { color: #00A89D; }
+
+    .reconnecting {
+      display: none;
+      color: #f59e0b;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .reconnecting.show { display: block; }
+
+    /* Main content */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    /* Queue section */
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #555;
+      margin-bottom: 0.75rem;
+    }
+
+    .queue-section {
+      flex: 1;
+      min-height: 0;
+    }
+
+    .queue-item {
+      display: flex;
+      align-items: center;
+      padding: 0.8rem 1.2rem;
+      margin-bottom: 0.5rem;
+      border-radius: 10px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      transition: all 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+      animation: slideIn 0.4s ease;
+    }
+    .queue-item.first {
+      background: linear-gradient(135deg, #0d2b29, #1a1a1a);
+      border-color: #00A89D44;
+      padding: 1rem 1.2rem;
+    }
+    .queue-item.exiting {
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .position {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #444;
+      min-width: 2.5rem;
+      text-align: center;
+    }
+    .first .position { color: #00A89D; font-size: 1.8rem; }
+
+    .person-name {
+      flex: 1;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-left: 0.8rem;
+      color: #ccc;
+    }
+    .first .person-name { color: #fff; font-size: 2.2rem; }
+
+    .time-ago {
+      font-size: 0.85rem;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    /* Inactive section */
+    .inactive-section {
+      margin-top: 1.5rem;
+      flex-shrink: 0;
+    }
+    .inactive-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .inactive-chip {
+      background: #151515;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 0.4rem 1rem;
+      font-size: 1rem;
+      color: #555;
+      font-weight: 500;
+    }
+
+    /* Idle state */
+    .idle {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #444;
+    }
+    .idle-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.3; }
+    .idle-text { font-size: 1.4rem; font-weight: 500; }
+
+    /* No meeting state */
+    .no-meeting {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #444;
+      font-size: 1.3rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <span class="meeting-name" id="meeting-name">—</span>
+      <span class="badge zero" id="badge">0</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <span class="reconnecting" id="reconnecting">Reconnecting...</span>
+      <button class="sound-toggle" id="sound-toggle" title="Toggle sound">&#x1f507;</button>
+    </div>
+  </div>
+
+  <div class="content" id="content">
+    <div class="no-meeting" id="no-meeting">No active meeting — waiting...</div>
+  </div>
+
+  <script>
+    let soundEnabled = false;
+    let audioCtx = null;
+    let previousQueueButtons = new Set();
+    let eventSource = null;
+    let currentMeetingId = null;
+
+    const soundToggle = document.getElementById('sound-toggle');
+    const reconnecting = document.getElementById('reconnecting');
+
+    soundToggle.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      if (soundEnabled) {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        soundToggle.innerHTML = '&#x1f50a;';
+        soundToggle.classList.add('enabled');
+      } else {
+        soundToggle.innerHTML = '&#x1f507;';
+        soundToggle.classList.remove('enabled');
+      }
+    });
+
+    function playChime() {
+      if (!soundEnabled || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(660, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.4);
+    }
+
+    function timeAgo(isoStr) {
+      const diff = Math.max(0, Math.floor((Date.now() - new Date(isoStr + 'Z').getTime()) / 1000));
+      if (diff < 5) return 'just now';
+      if (diff < 60) return diff + 's ago';
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+      return Math.floor(diff / 3600) + 'h ago';
+    }
+
+    function render(state) {
+      const content = document.getElementById('content');
+      const badge = document.getElementById('badge');
+      const meetingName = document.getElementById('meeting-name');
+      const noMeeting = document.getElementById('no-meeting');
+
+      if (state.active === false) {
+        noMeeting.style.display = 'flex';
+        content.innerHTML = '';
+        content.appendChild(noMeeting);
+        meetingName.textContent = '—';
+        badge.textContent = '0';
+        badge.className = 'badge zero';
+        return;
+      }
+
+      meetingName.textContent = state.meetingName || '—';
+      const count = state.queue.length;
+      badge.textContent = count;
+      badge.className = count > 0 ? 'badge' : 'badge zero';
+
+      // Detect new hands for chime
+      const newButtons = new Set(state.queue.map(q => q.button_number));
+      for (const btn of newButtons) {
+        if (!previousQueueButtons.has(btn)) {
+          playChime();
+          break;
+        }
+      }
+      previousQueueButtons = newButtons;
+
+      let html = '';
+
+      if (count === 0) {
+        html += '<div class="idle"><div class="idle-icon">&#9995;</div><div class="idle-text">No hands raised</div></div>';
+      } else {
+        html += '<div class="queue-section">';
+        html += '<div class="section-label">Queue</div>';
+        state.queue.forEach((item, i) => {
+          const cls = i === 0 ? 'queue-item first' : 'queue-item';
+          html += `<div class="${cls}" data-btn="${item.button_number}">
+            <span class="position">${i + 1}</span>
+            <span class="person-name">${esc(item.person_name)}</span>
+            <span class="time-ago" data-raised="${item.raised_at}">${timeAgo(item.raised_at)}</span>
+          </div>`;
+        });
+        html += '</div>';
+      }
+
+      if (state.inactive && state.inactive.length > 0) {
+        html += '<div class="inactive-section">';
+        html += '<div class="section-label">Available</div>';
+        html += '<div class="inactive-list">';
+        state.inactive.forEach(item => {
+          html += `<span class="inactive-chip">${esc(item.person_name)}</span>`;
+        });
+        html += '</div></div>';
+      }
+
+      content.innerHTML = html;
+    }
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // Update timestamps periodically
+    setInterval(() => {
+      document.querySelectorAll('.time-ago[data-raised]').forEach(el => {
+        el.textContent = timeAgo(el.dataset.raised);
+      });
+    }, 5000);
+
+    // SSE connection
+    function connect() {
+      if (eventSource) eventSource.close();
+      eventSource = new EventSource('/api/active/stream');
+
+      eventSource.onmessage = (e) => {
+        reconnecting.classList.remove('show');
+        try {
+          const state = JSON.parse(e.data);
+          render(state);
+        } catch (err) {
+          console.error('Parse error:', err);
+        }
+      };
+
+      eventSource.onerror = () => {
+        reconnecting.classList.add('show');
+      };
+    }
+
+    connect();
+  </script>
+</body>
+</html>

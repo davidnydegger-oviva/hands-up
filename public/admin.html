@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flic Hands — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0f0f0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+    h1 { font-size: 1.5rem; font-weight: 700; color: #00A89D; margin-bottom: 1.5rem; }
+    h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: #ccc; }
+    h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; color: #aaa; }
+
+    /* Auth overlay */
+    .auth-overlay {
+      position: fixed; inset: 0; background: #0f0f0f;
+      display: flex; align-items: center; justify-content: center; z-index: 100;
+    }
+    .auth-box {
+      background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px;
+      padding: 2rem; width: 320px; text-align: center;
+    }
+    .auth-box h2 { margin-bottom: 1rem; }
+    .auth-box input {
+      width: 100%; padding: 0.6rem 1rem; border-radius: 8px;
+      border: 1px solid #333; background: #111; color: #eee;
+      font-family: inherit; font-size: 1rem; margin-bottom: 1rem;
+    }
+    .auth-box .error { color: #ef4444; font-size: 0.85rem; margin-bottom: 0.5rem; display: none; }
+
+    .hidden { display: none !important; }
+
+    /* Layout */
+    .layout { display: grid; grid-template-columns: 340px 1fr; gap: 1.5rem; }
+    @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+
+    /* Cards */
+    .card {
+      background: #1a1a1a; border: 1px solid #2a2a2a;
+      border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem;
+    }
+
+    /* Meetings list */
+    .meeting-item {
+      padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer;
+      margin-bottom: 0.4rem; display: flex; align-items: center;
+      justify-content: space-between; transition: background 0.2s;
+      border: 1px solid transparent;
+    }
+    .meeting-item:hover { background: #222; }
+    .meeting-item.selected { border-color: #00A89D44; background: #0d2b29; }
+    .meeting-item .name { font-weight: 600; }
+    .meeting-item .meta { font-size: 0.75rem; color: #666; }
+    .active-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #00A89D; flex-shrink: 0; margin-left: 0.5rem;
+    }
+    .active-dot.off { background: #333; }
+
+    /* Buttons */
+    .btn {
+      padding: 0.5rem 1rem; border-radius: 8px; border: none;
+      font-family: inherit; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: #00A89D; color: #fff; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-ghost { background: #222; color: #aaa; border: 1px solid #333; }
+    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+
+    /* Inputs */
+    input[type="text"] {
+      width: 100%; padding: 0.5rem 0.8rem; border-radius: 8px;
+      border: 1px solid #333; background: #111; color: #eee;
+      font-family: inherit; font-size: 0.9rem;
+    }
+    input[type="text"]:focus { outline: none; border-color: #00A89D55; }
+
+    /* Create meeting */
+    .create-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .create-row input { flex: 1; }
+
+    /* Assignments grid */
+    .assignments-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    @media (max-width: 600px) { .assignments-grid { grid-template-columns: 1fr; } }
+    .assignment-field { display: flex; align-items: center; gap: 0.5rem; }
+    .assignment-field label {
+      font-size: 0.8rem; color: #666; min-width: 4.5rem; font-weight: 600;
+    }
+    .assignment-field input { flex: 1; }
+
+    /* Action bar */
+    .action-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+
+    /* Queue preview */
+    .queue-preview { margin-top: 1rem; }
+    .q-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.5rem 0.75rem; margin-bottom: 0.3rem;
+      background: #151515; border-radius: 6px;
+    }
+    .q-item.first { border-left: 3px solid #00A89D; }
+    .q-pos { font-weight: 700; color: #555; min-width: 1.5rem; }
+    .q-item.first .q-pos { color: #00A89D; }
+    .q-name { font-weight: 600; flex: 1; }
+    .q-time { font-size: 0.75rem; color: #555; }
+    .q-empty { color: #444; font-size: 0.9rem; padding: 0.5rem; }
+
+    /* URLs section */
+    .urls { margin-top: 1rem; }
+    .url-row { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; }
+    .url-row code {
+      background: #111; padding: 0.15rem 0.5rem; border-radius: 4px;
+      color: #00A89D; font-size: 0.8rem;
+    }
+
+    /* Delete confirm */
+    .delete-confirm {
+      display: inline-flex; gap: 0.3rem; align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth overlay -->
+  <div class="auth-overlay" id="auth-overlay">
+    <div class="auth-box">
+      <h2>Admin Login</h2>
+      <div class="error" id="auth-error">Incorrect password</div>
+      <input type="password" id="auth-input" placeholder="Password" autofocus>
+      <button class="btn btn-primary" onclick="tryAuth()" style="width:100%">Enter</button>
+    </div>
+  </div>
+
+  <!-- Main app -->
+  <div class="hidden" id="app">
+    <h1>Flic Hands Admin</h1>
+    <div class="layout">
+      <!-- Left: meetings list -->
+      <div>
+        <div class="create-row">
+          <input type="text" id="new-name" placeholder="New meeting name">
+          <button class="btn btn-primary" onclick="createMeeting()">Create</button>
+        </div>
+        <div id="meetings-list"></div>
+      </div>
+
+      <!-- Right: meeting detail -->
+      <div id="detail" class="hidden">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+            <h2 id="detail-name" style="margin:0"></h2>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <button class="btn btn-sm" id="toggle-active-btn" onclick="toggleActive()">Activate</button>
+              <span class="delete-confirm" id="delete-area">
+                <button class="btn btn-sm btn-danger" onclick="startDelete()">Delete</button>
+              </span>
+            </div>
+          </div>
+
+          <h3>Button Assignments</h3>
+          <div class="assignments-grid" id="assignments-grid"></div>
+          <div style="margin-top:0.75rem;">
+            <button class="btn btn-primary btn-sm" onclick="saveAssignments()">Save Assignments</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <h3 style="margin:0">Live Queue</h3>
+            <div class="action-bar" style="margin:0">
+              <button class="btn btn-sm btn-ghost" onclick="doNext()">Next</button>
+              <button class="btn btn-sm btn-ghost" onclick="doClear()">Clear All</button>
+            </div>
+          </div>
+          <div class="queue-preview" id="queue-preview"></div>
+        </div>
+
+        <div class="urls">
+          <div class="url-row">Display: <code id="display-url"></code></div>
+          <div class="url-row">SSE Stream: <code id="sse-url"></code></div>
+          <div class="url-row">State API: <code id="state-url"></code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let password = sessionStorage.getItem('admin_pw') || '';
+    let meetings = [];
+    let selectedId = null;
+    let queueEventSource = null;
+
+    // Auth
+    if (password) {
+      verifyAuth(password);
+    }
+    document.getElementById('auth-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') tryAuth();
+    });
+
+    function tryAuth() {
+      const pw = document.getElementById('auth-input').value;
+      verifyAuth(pw);
+    }
+
+    function verifyAuth(pw) {
+      fetch('/api/meetings', { headers: { 'X-Admin-Password': pw } })
+        .then(r => {
+          if (!r.ok) throw new Error('bad');
+          password = pw;
+          sessionStorage.setItem('admin_pw', pw);
+          document.getElementById('auth-overlay').classList.add('hidden');
+          document.getElementById('app').classList.remove('hidden');
+          return r.json();
+        })
+        .then(data => {
+          meetings = data;
+          renderMeetings();
+        })
+        .catch(() => {
+          document.getElementById('auth-error').style.display = 'block';
+          document.getElementById('auth-input').value = '';
+          document.getElementById('auth-input').focus();
+        });
+    }
+
+    function api(path, opts = {}) {
+      return fetch(path, {
+        ...opts,
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password, ...(opts.headers || {}) }
+      }).then(r => r.json());
+    }
+
+    // Meetings list
+    function renderMeetings() {
+      const el = document.getElementById('meetings-list');
+      if (meetings.length === 0) {
+        el.innerHTML = '<div style="color:#555;font-size:0.9rem;padding:1rem;">No meetings yet</div>';
+        return;
+      }
+      el.innerHTML = meetings.map(m => `
+        <div class="meeting-item ${m.id === selectedId ? 'selected' : ''}" onclick="selectMeeting('${m.id}')">
+          <div>
+            <div class="name">${esc(m.name)}</div>
+            <div class="meta">${new Date(m.created_at + 'Z').toLocaleDateString()}</div>
+          </div>
+          <div class="active-dot ${m.is_active ? '' : 'off'}" title="${m.is_active ? 'Active' : 'Inactive'}"></div>
+        </div>
+      `).join('');
+    }
+
+    function createMeeting() {
+      const input = document.getElementById('new-name');
+      const name = input.value.trim();
+      if (!name) return;
+      api('/api/meetings', { method: 'POST', body: JSON.stringify({ name }) })
+        .then(m => {
+          meetings.unshift(m);
+          renderMeetings();
+          input.value = '';
+          selectMeeting(m.id);
+        });
+    }
+
+    document.getElementById('new-name').addEventListener('keydown', e => {
+      if (e.key === 'Enter') createMeeting();
+    });
+
+    // Meeting detail
+    function selectMeeting(id) {
+      selectedId = id;
+      renderMeetings();
+      const m = meetings.find(x => x.id === id);
+      if (!m) return;
+
+      document.getElementById('detail').classList.remove('hidden');
+      document.getElementById('detail-name').textContent = m.name;
+
+      const btn = document.getElementById('toggle-active-btn');
+      btn.textContent = m.is_active ? 'Deactivate' : 'Activate';
+      btn.className = m.is_active ? 'btn btn-sm btn-ghost' : 'btn btn-sm btn-primary';
+
+      // Reset delete button
+      document.getElementById('delete-area').innerHTML =
+        '<button class="btn btn-sm btn-danger" onclick="startDelete()">Delete</button>';
+
+      const base = location.origin;
+      document.getElementById('display-url').textContent = base + '/display';
+      document.getElementById('sse-url').textContent = base + '/api/meetings/' + id + '/stream';
+      document.getElementById('state-url').textContent = base + '/api/meetings/' + id + '/state';
+
+      loadAssignments(id);
+      connectQueue(id);
+    }
+
+    function toggleActive() {
+      const m = meetings.find(x => x.id === selectedId);
+      if (!m) return;
+      const endpoint = m.is_active ? 'deactivate' : 'activate';
+      api(`/api/meetings/${selectedId}/${endpoint}`, { method: 'POST' }).then(() => {
+        if (!m.is_active) meetings.forEach(x => x.is_active = 0);
+        m.is_active = m.is_active ? 0 : 1;
+        renderMeetings();
+        selectMeeting(selectedId);
+      });
+    }
+
+    function startDelete() {
+      document.getElementById('delete-area').innerHTML = `
+        <span style="font-size:0.8rem;color:#aaa">Sure?</span>
+        <button class="btn btn-sm btn-danger" onclick="confirmDelete()">Yes</button>
+        <button class="btn btn-sm btn-ghost" onclick="selectMeeting(selectedId)">No</button>
+      `;
+    }
+
+    function confirmDelete() {
+      api(`/api/meetings/${selectedId}`, { method: 'DELETE' }).then(() => {
+        meetings = meetings.filter(m => m.id !== selectedId);
+        selectedId = null;
+        document.getElementById('detail').classList.add('hidden');
+        renderMeetings();
+      });
+    }
+
+    // Assignments
+    function loadAssignments(id) {
+      api(`/api/meetings/${id}/assignments`).then(assignments => {
+        const grid = document.getElementById('assignments-grid');
+        let html = '';
+        for (let i = 1; i <= 10; i++) {
+          const a = assignments.find(x => x.button_number === i);
+          html += `<div class="assignment-field">
+            <label>Button ${i}</label>
+            <input type="text" id="btn-${i}" value="${a ? esc(a.person_name) : ''}" placeholder="Unassigned">
+          </div>`;
+        }
+        grid.innerHTML = html;
+      });
+    }
+
+    function saveAssignments() {
+      const data = [];
+      for (let i = 1; i <= 10; i++) {
+        const val = document.getElementById('btn-' + i).value.trim();
+        if (val) data.push({ button_number: i, person_name: val });
+      }
+      api(`/api/meetings/${selectedId}/assignments`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      }).then(() => loadAssignments(selectedId));
+    }
+
+    // Queue preview via SSE
+    function connectQueue(meetingId) {
+      if (queueEventSource) queueEventSource.close();
+      queueEventSource = new EventSource(`/api/meetings/${meetingId}/stream`);
+      queueEventSource.onmessage = (e) => {
+        try { renderQueue(JSON.parse(e.data)); } catch {}
+      };
+    }
+
+    function renderQueue(state) {
+      const el = document.getElementById('queue-preview');
+      if (!state.queue || state.queue.length === 0) {
+        el.innerHTML = '<div class="q-empty">No hands raised</div>';
+        return;
+      }
+      el.innerHTML = state.queue.map((item, i) => `
+        <div class="q-item ${i === 0 ? 'first' : ''}">
+          <span class="q-pos">${i + 1}</span>
+          <span class="q-name">${esc(item.person_name)}</span>
+          <span class="q-time">${timeAgo(item.raised_at)}</span>
+        </div>
+      `).join('');
+    }
+
+    function timeAgo(isoStr) {
+      const diff = Math.max(0, Math.floor((Date.now() - new Date(isoStr + 'Z').getTime()) / 1000));
+      if (diff < 5) return 'just now';
+      if (diff < 60) return diff + 's ago';
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+      return Math.floor(diff / 3600) + 'h ago';
+    }
+
+    function doNext() {
+      if (!selectedId) return;
+      api(`/api/meetings/${selectedId}/next`, { method: 'POST' });
+    }
+    function doClear() {
+      if (!selectedId) return;
+      api(`/api/meetings/${selectedId}/clear`, { method: 'POST' });
+    }
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+  </script>
+</body>
+</html>

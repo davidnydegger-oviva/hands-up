@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flic Hands</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #00A89D;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: #888;
+      font-size: 1.1rem;
+      margin-bottom: 2.5rem;
+    }
+    .status {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      min-width: 320px;
+    }
+    .status .label { color: #888; font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .status .value { font-size: 1.3rem; font-weight: 600; }
+    .status .value.active { color: #00A89D; }
+    .status .value.none { color: #666; }
+    .links {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .links a {
+      display: inline-block;
+      padding: 0.75rem 2rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: opacity 0.2s;
+    }
+    .links a:hover { opacity: 0.85; }
+    .links .primary {
+      background: #00A89D;
+      color: #fff;
+    }
+    .links .secondary {
+      background: #222;
+      color: #ccc;
+      border: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Flic Hands</h1>
+  <p class="subtitle">Hand-raise queue for in-person meetings</p>
+  <div class="status">
+    <div class="label">Active Meeting</div>
+    <div class="value" id="meeting-status">Loading...</div>
+  </div>
+  <div class="links">
+    <a href="/display" class="primary">Open Display</a>
+    <a href="/admin" class="secondary">Admin Panel</a>
+  </div>
+  <script>
+    fetch('/api/active/state')
+      .then(r => r.json())
+      .then(data => {
+        const el = document.getElementById('meeting-status');
+        if (data.active) {
+          el.textContent = data.meetingName;
+          el.className = 'value active';
+        } else {
+          el.textContent = 'No active meeting';
+          el.className = 'value none';
+        }
+      })
+      .catch(() => {
+        document.getElementById('meeting-status').textContent = 'Could not connect';
+      });
+  </script>
+</body>
+</html>
