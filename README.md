@@ -20,7 +20,7 @@ Open `http://localhost:3000` in your browser.
 | Variable | Default | Description |
 |---|---|---|
 | `PORT` | `3000` | Server port |
-| `ADMIN_PASSWORD` | `oviva2026` | Password for admin panel |
+| `ADMIN_PASSWORD` | *(none — must be set)* | Password for admin panel |
 | `DB_PATH` | `./data/hands.db` | SQLite database path |
 
 ## Pages

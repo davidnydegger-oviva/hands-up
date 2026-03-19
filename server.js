@@ -8,7 +8,7 @@ const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'oviva2026';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 app.use(cors());
 app.use(express.json());
