@@ -36,7 +36,7 @@ For each button (1–10), configure in the Flic app:
 
 - **Click action:** HTTP Request → `POST https://your-server.com/api/button/1/raise`
 - **Double-click action:** HTTP Request → `POST https://your-server.com/api/button/1/lower`
-- No headers or body needed
+- **Header:** `Authorization: Bearer <your BUTTON_API_KEY>`
 - Replace `1` with the button number (1–10)
 - Replace `your-server.com` with your server's address
 
@@ -67,12 +67,12 @@ location / {
 
 ## API Reference
 
-### Button Endpoints (no auth, called by Flic hub)
+### Button Endpoints (require `Authorization: Bearer <BUTTON_API_KEY>` header)
 
 - `POST /api/button/:buttonNumber/raise` — Raise hand
 - `POST /api/button/:buttonNumber/lower` — Lower hand
 
-### Facilitator Endpoints
+### Facilitator Endpoints (require `X-Admin-Password` header)
 
 - `POST /api/meetings/:meetingId/next` — Dismiss top of queue
 - `POST /api/meetings/:meetingId/clear` — Clear all hands
