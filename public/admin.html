@@ -118,10 +118,12 @@
     /* URLs section */
     .urls { margin-top: 1rem; }
     .url-row { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; }
-    .url-row code {
+    .url-row a {
       background: #111; padding: 0.15rem 0.5rem; border-radius: 4px;
-      color: #00A89D; font-size: 0.8rem;
+      color: #00A89D; font-size: 0.8rem; font-family: monospace;
+      text-decoration: none;
     }
+    .url-row a:hover { text-decoration: underline; }
 
     /* Delete confirm */
     .delete-confirm {
@@ -186,9 +188,9 @@
         </div>
 
         <div class="urls">
-          <div class="url-row">Display: <code id="display-url"></code></div>
-          <div class="url-row">SSE Stream: <code id="sse-url"></code></div>
-          <div class="url-row">State API: <code id="state-url"></code></div>
+          <div class="url-row">Display: <a id="display-url" target="_blank"></a></div>
+          <div class="url-row">SSE Stream: <a id="sse-url" target="_blank"></a></div>
+          <div class="url-row">State API: <a id="state-url" target="_blank"></a></div>
         </div>
       </div>
     </div>
@@ -299,9 +301,15 @@
         '<button class="btn btn-sm btn-danger" onclick="startDelete()">Delete</button>';
 
       const base = location.origin;
-      document.getElementById('display-url').textContent = base + '/display';
-      document.getElementById('sse-url').textContent = base + '/api/meetings/' + id + '/stream';
-      document.getElementById('state-url').textContent = base + '/api/meetings/' + id + '/state';
+      const displayEl = document.getElementById('display-url');
+      const sseEl = document.getElementById('sse-url');
+      const stateEl = document.getElementById('state-url');
+      displayEl.href = base + '/display.html';
+      displayEl.textContent = base + '/display.html';
+      sseEl.href = base + '/api/meetings/' + id + '/stream';
+      sseEl.textContent = base + '/api/meetings/' + id + '/stream';
+      stateEl.href = base + '/api/meetings/' + id + '/state';
+      stateEl.textContent = base + '/api/meetings/' + id + '/state';
 
       loadAssignments(id);
       connectQueue(id);
