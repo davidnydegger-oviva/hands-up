@@ -34,11 +34,11 @@ Open `http://localhost:3000` in your browser.
 
 For each button (1–10), configure in the Flic app:
 
-- **Click action:** HTTP Request → `POST https://your-server.com/api/button/1/raise`
-- **Double-click action:** HTTP Request → `POST https://your-server.com/api/button/1/lower`
+- **Click action:** HTTP Request → `POST https://your-server.com/api/button/1/toggle`
 - **Header:** `Authorization: Bearer <your BUTTON_API_KEY>`
 - Replace `1` with the button number (1–10)
 - Replace `your-server.com` with your server's address
+- Single click toggles the hand: raised → lowered, lowered → raised (Google Meet style)
 
 ## Production Deployment
 
@@ -69,8 +69,9 @@ location / {
 
 ### Button Endpoints (require `Authorization: Bearer <BUTTON_API_KEY>` header)
 
-- `POST /api/button/:buttonNumber/raise` — Raise hand
-- `POST /api/button/:buttonNumber/lower` — Lower hand
+- `POST /api/button/:buttonNumber/toggle` — Toggle hand (raise if lowered, lower if raised)
+- `POST /api/button/:buttonNumber/raise` — Raise hand (legacy)
+- `POST /api/button/:buttonNumber/lower` — Lower hand (legacy)
 
 ### Facilitator Endpoints (require `X-Admin-Password` header)
 

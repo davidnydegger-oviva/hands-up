@@ -142,6 +142,38 @@ app.post('/api/button/:buttonNumber/raise', requireButtonKey, (req, res) => {
   }
 });
 
+app.post('/api/button/:buttonNumber/toggle', requireButtonKey, (req, res) => {
+  try {
+    const buttonNumber = parseInt(req.params.buttonNumber, 10);
+    const meeting = getActiveMeeting();
+    if (!meeting) return res.json({ ok: true });
+
+    const assignment = db.prepare(
+      'SELECT * FROM button_assignments WHERE meeting_id = ? AND button_number = ?'
+    ).get(meeting.id, buttonNumber);
+    if (!assignment) return res.json({ ok: true });
+
+    const existing = db.prepare(
+      'SELECT * FROM hand_raises WHERE meeting_id = ? AND button_number = ? AND is_raised = 1'
+    ).get(meeting.id, buttonNumber);
+
+    if (existing) {
+      db.prepare('UPDATE hand_raises SET is_raised = 0 WHERE id = ?').run(existing.id);
+    } else {
+      db.prepare(
+        'INSERT INTO hand_raises (id, meeting_id, button_number, raised_at, is_raised) VALUES (?, ?, ?, datetime(\'now\'), 1)'
+      ).run(uuidv4(), meeting.id, buttonNumber);
+    }
+
+    broadcastState(meeting.id);
+    broadcastActiveState();
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Error toggling hand:', err);
+    res.json({ ok: true });
+  }
+});
+
 app.post('/api/button/:buttonNumber/lower', requireButtonKey, (req, res) => {
   try {
     const buttonNumber = parseInt(req.params.buttonNumber, 10);
